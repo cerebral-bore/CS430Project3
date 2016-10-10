@@ -12,4 +12,4 @@ Your program (raycast) should have this usage pattern:
 raycast width height input.json output.ppm
 
 The JSON data file should support all the primitives from project 2 and should implement a new
-light primitive. Examples of the fields for lights follow:
+light primitive.
