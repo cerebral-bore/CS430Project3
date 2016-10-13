@@ -521,3 +521,100 @@ int main(int args, char** argv) {
     raycast(objects,argv[1],argv[2],argv[4]);
     return 0;
 }
+
+/*Object** object;
+
+for(int y=0; y<M;y+=1){
+	for(int x=0; x<N; x++){
+		Ro = ...;
+		Rd = ...;
+		
+		double closest_t;
+		Object* closest_obj = NULL;
+		double t;
+		
+		for(int i=0; object[i] != NULL; i++){
+			// object->intersect()
+			switch(...){
+				case sphere:
+					t = sphere_intersx(...);
+					break;
+				case plane:
+					// Distance along the vector = t value
+					t = plane_intersx(...);
+				default:
+					// Error
+					exit(1); // or break;?
+			}
+		}
+		// We have our closest_obj
+		buffer[...].r = (unsigned char)(255 * clamp(closest_obj -> color));
+		buffer[...].g = (unsigned char)(255 * clamp(closest_obj -> color));
+		buffer[...].b = (unsigned char)(255 * clamp(closest_obj -> color));
+		// This clamp function will make vals > 255 or < 0 "normal"
+		// otherwise known as make vals 0-1.0
+		// In class he changed the above block of code to...
+		double* color = malloc(sizeof(double)*3);
+		/* If we had ambient color
+		color[0] = ambient_color[0];
+		color[1] = ambient_color[1];
+		color[2] = ambient_color[2];
+		but we don't, so...
+		color[0] = 0;
+		color[1] = 0;
+		color[2] = 0;
+
+		for(int j=0; light[j] != NULL; j++){
+			// Do a shadow test
+			// Ron = Ray Intersection, New
+			Ron = closest_t * Rd + Ro;
+			// BEWARE, this is just pseudocode, cant just add vectors like this
+			// Ray Direction, New
+			Rdn = light_position - Ron;
+			closest_shadow_obj = ...;
+			for(int k=0; object[k] != NULL; k++){
+				// Can skip lighting check if it is itself
+				if(object[k] == closest_obj){ continue; }
+				switch(...){
+				case sphere:
+					t = sphere_intersx(...);
+					break;
+				case plane:
+					// Distance along the vector = t value
+					t = plane_intersx(...);
+				default:
+					// Error
+					exit(1); // or break;?
+				}
+				if(best_t > distance_to_light){
+					continue;
+				}
+			}
+			// I = Iemit + ka*ia + 
+			// Sum(f1,rad_atten*f1,ang_atten(kd*Il(N*L)+ks*Il(R*V)^n))
+			// We have our best t again
+			if(closest_shadow_obj == NULL){
+				// N, L, R, V
+				N = closest_object->normal; // plane
+				N = Ron - closest_object->center;
+				L = Rdn; // Light_position - Ron;
+				R = /* Reflection of L NULL;
+				V = Rd; // Ray direction hitting the object
+				diffuse = ...;
+				specular = ...;
+				
+				color[0] += frad() * fang() * (diffuse + specular);
+				color[1] += frad() * fang() * (diffuse + specular);
+				color[2] += frad() * fang() * (diffuse + specular);
+				
+			}
+		}
+		
+		// Color has now been calculated
+		// Remember that color and light here is going to be additive
+		
+		buffer[...].r = (unsigned char)(255 * clamp(color[0]));
+		buffer[...].g = (unsigned char)(255 * clamp(color[1]));
+		buffer[...].b = (unsigned char)(255 * clamp(color[2]));
+	}
+}*/
