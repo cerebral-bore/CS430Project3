@@ -5,31 +5,40 @@
 #include <ctype.h>
 
 /* 	Jesus Garcia
-	Project 2 - Raycast - 10/4/16
+	Project 3 - Raycasting with Illumination - 10/20/16
 	CS430 - Prof. Palmer
 	
-	"In this project you will write code to raycast mathematical primitives based on a scene input file
-	into a pixel buffer. You will then write the pixel buffer to a PPM formatted file using the code
-	you wrote in Project 1 (P3 or P6 format).
-	
-	Your program should be resistant to errors and should not segfault or produce undefined
-	behavior. If an error occurs, it should print a message to stderr with “Error:” prefixed to a
-	descriptive error message before returning a non-zero error code. I have a test suite designed to
-	test the robustness of your program."
+	"In the previous project you will wrote code to raycast 
+	mathematical primitives based on a scene
+	input file into a pixel buffer. In this project you will 
+	color objects based on the shading model we discussed in class."
 	
 	Your program (raycast) should have this usage pattern:
 		raycast width height input.json output.ppm
 		
-	• Our	format	is	always	a	list	of	objects;	any	other	input	should	result	in	an	error.
-	• The	number	of	objects	in	the	list	will	not	exceed	128;	you	may	allow	more	at	your	
-			option.
-	• The	first	field	in	an	object	will	be	“type”;	you	may	consider	arbitrary	order	for	this	
-			field	at	your	option.
-	• Other	fields	may	appear	in	any	order.
-	• Vectors	will	always	be	given	as	a	list	of	three	numbers.
-	• You	may	assume	that	strings	do	not	have	non-ascii	characters	(e.g.	Unicode)	or	
-			escaped	characters.
-	• You	may	assume	the	file	itself	is	ASCII	and	not	Unicode
+	This improved program will include illumination elements...
+	
+	position The location of the light
+	color The color of the light (vector)
+	radial-a0 The lowest order term in the radial attenuation function (lights only)
+	radial-a1 The middle order term in the radial attenuation function (lights only)
+	radial-a2 The highest order term in the radial attenuation function (lights only)
+	theta The angle of the spotlight cone (spot lights only) in degrees;
+	If theta = 0 or is not present, the light is a point light;
+	
+	Note that the C trig functions assume radians so you may need to do
+	a conversion.
+	
+	angular-a0 The exponent in the angular attenuation function (spot lights only)
+	direction The direction vector of the spot light (spot lights only)
+	If direction is not present, the light is a point light
+	
+	For objects, the properties from the last assignment should be supported in addition to:
+		diffuse_color The diffuse color of the object (vector)
+		specular_color The specular color of the object (vector)
+		You	may	optionally	include	an	object property,	ns,	for	shininess.
+		If	the	property	is	not	present	please	set	the	value	to 20 
+		(you	may	simply	hard	code	the	value	in	the	specular	 equation).
 	
 */
 
@@ -47,21 +56,31 @@ typedef struct{
 }	Camera;
 typedef struct{
     double center[3];
-    double color[3];
+    double diffuse_color[3];
+	double specular_color[3];
     double radius;
 	
 }	Sphere;
 typedef struct{
     double position[3];
-    double color[3];
+    double diffuse_color[3];
     double normal[3];
 
 }	Plane;
+typedef struct{
+    double color[3];
+	double radiala0;
+	double radiala1;
+	double radiala2;
+	double position[3];
+
+}	Light;
 typedef struct{
     int objType;
     Camera cam;
     Sphere sphere;
     Plane plane;
+	Light light;
 	
 }	Object;
 
@@ -521,100 +540,3 @@ int main(int args, char** argv) {
     raycast(objects,argv[1],argv[2],argv[4]);
     return 0;
 }
-
-/*Object** object;
-
-for(int y=0; y<M;y+=1){
-	for(int x=0; x<N; x++){
-		Ro = ...;
-		Rd = ...;
-		
-		double closest_t;
-		Object* closest_obj = NULL;
-		double t;
-		
-		for(int i=0; object[i] != NULL; i++){
-			// object->intersect()
-			switch(...){
-				case sphere:
-					t = sphere_intersx(...);
-					break;
-				case plane:
-					// Distance along the vector = t value
-					t = plane_intersx(...);
-				default:
-					// Error
-					exit(1); // or break;?
-			}
-		}
-		// We have our closest_obj
-		buffer[...].r = (unsigned char)(255 * clamp(closest_obj -> color));
-		buffer[...].g = (unsigned char)(255 * clamp(closest_obj -> color));
-		buffer[...].b = (unsigned char)(255 * clamp(closest_obj -> color));
-		// This clamp function will make vals > 255 or < 0 "normal"
-		// otherwise known as make vals 0-1.0
-		// In class he changed the above block of code to...
-		double* color = malloc(sizeof(double)*3);
-		/* If we had ambient color
-		color[0] = ambient_color[0];
-		color[1] = ambient_color[1];
-		color[2] = ambient_color[2];
-		but we don't, so...
-		color[0] = 0;
-		color[1] = 0;
-		color[2] = 0;
-
-		for(int j=0; light[j] != NULL; j++){
-			// Do a shadow test
-			// Ron = Ray Intersection, New
-			Ron = closest_t * Rd + Ro;
-			// BEWARE, this is just pseudocode, cant just add vectors like this
-			// Ray Direction, New
-			Rdn = light_position - Ron;
-			closest_shadow_obj = ...;
-			for(int k=0; object[k] != NULL; k++){
-				// Can skip lighting check if it is itself
-				if(object[k] == closest_obj){ continue; }
-				switch(...){
-				case sphere:
-					t = sphere_intersx(...);
-					break;
-				case plane:
-					// Distance along the vector = t value
-					t = plane_intersx(...);
-				default:
-					// Error
-					exit(1); // or break;?
-				}
-				if(best_t > distance_to_light){
-					continue;
-				}
-			}
-			// I = Iemit + ka*ia + 
-			// Sum(f1,rad_atten*f1,ang_atten(kd*Il(N*L)+ks*Il(R*V)^n))
-			// We have our best t again
-			if(closest_shadow_obj == NULL){
-				// N, L, R, V
-				N = closest_object->normal; // plane
-				N = Ron - closest_object->center;
-				L = Rdn; // Light_position - Ron;
-				R = /* Reflection of L NULL;
-				V = Rd; // Ray direction hitting the object
-				diffuse = ...;
-				specular = ...;
-				
-				color[0] += frad() * fang() * (diffuse + specular);
-				color[1] += frad() * fang() * (diffuse + specular);
-				color[2] += frad() * fang() * (diffuse + specular);
-				
-			}
-		}
-		
-		// Color has now been calculated
-		// Remember that color and light here is going to be additive
-		
-		buffer[...].r = (unsigned char)(255 * clamp(color[0]));
-		buffer[...].g = (unsigned char)(255 * clamp(color[1]));
-		buffer[...].b = (unsigned char)(255 * clamp(color[2]));
-	}
-}*/
