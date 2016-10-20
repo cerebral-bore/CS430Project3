@@ -69,10 +69,12 @@ typedef struct{
 }	Plane;
 typedef struct{
     double color[3];
+	double direction[3];
 	double radiala0;
 	double radiala1;
 	double radiala2;
 	double position[3];
+	double angulara0;
 
 }	Light;
 typedef struct{
@@ -356,7 +358,7 @@ void makeP3PPM(PixData* pixData, int width, int height, char* filename){
 	
 	// Writing the P3 ppm Header
     fprintf(fh, "P3\n");
-	fprintf(fh, "# Jesus Garcia Project 2\n");
+	fprintf(fh, "# Jesus Garcia Project 3\n");
 	fprintf(fh, "%d %d\n", width, height);
 	fprintf(fh, "255\n");
 	
@@ -442,6 +444,18 @@ int errCheck(int args, char *argv[]){
 
 	return(0);
 }
+
+// Clamp function required to keep number below 255 or non-negative
+double clamp(double color){
+	if (color > 1.0) { color = 1.0; }
+	else if (color < 0.0) { color = 0.0; }
+	double clamped = 255.0 * color;
+	return clamped;
+}
+
+// TODO
+double frad(double lDist, double ra0, double ra1, double ra2){ return 1.0; }
+double fang(double lDir, double anga0, double* rayArray){ return 1.0; }
 
 // Creation function for the image
 void raycast(Object* objects,char* picture_height,char* picture_width,char* output_file){
