@@ -46,7 +46,7 @@ double line=1;
 
 // Struct Definitions
 typedef struct{
-    int r, g, b;
+    double r, g, b;
 	
 }	PixData;
 typedef struct{
@@ -78,11 +78,11 @@ typedef struct{
 
 }	Light;
 typedef struct{
-    int objType;
-    Camera cam;
-    Sphere sphere;
-    Plane plane;
-	Light light;
+    int objType; 
+    Camera cam;		// 0
+    Sphere sphere;	// 1
+    Plane plane;	// 2
+	Light light;	// 3
 	
 }	Object;
 
@@ -189,6 +189,7 @@ double* next_vector(FILE* json) {
 // From the given JSON parser code, modified to actually do something useful
 void read_scene(char* filename, Object* object) {
 	int c;
+	double line;
 
 	FILE* json = fopen(filename, "r");
 
@@ -213,6 +214,8 @@ void read_scene(char* filename, Object* object) {
 		Camera cam;
 		Sphere sphere;
 		Plane plane;
+		Light light;
+		line += 1.0;
 		
 		c = fgetc(json);
 		// This if statement trigger would mean the json contains basically nothing
@@ -247,6 +250,8 @@ void read_scene(char* filename, Object* object) {
 				object[i].objType = 1;
 			} else if (strcmp(value, "plane") == 0) {
 				object[i].objType = 2;
+			} else if (strcmp(value, "light") == 0) {
+				object[i].objType = 3;
 			} else {
 				fprintf(stderr, "Error: Unknown type, \"%s\", on line number %d.\n", value, line);
 				exit(1);
@@ -255,6 +260,7 @@ void read_scene(char* filename, Object* object) {
 			skip_ws(json);
 
 			while (1) {
+				
 				// , }
 				c = next_c(json);
 				if (c == '}') {
@@ -268,7 +274,7 @@ void read_scene(char* filename, Object* object) {
 					expect_c(json, ':');
 					skip_ws(json);
 					
-					if ((strcmp(key, "width") == 0) || (strcmp(key, "height") == 0) || (strcmp(key, "radius") == 0)) {
+		if ((strcmp(key, "width") == 0) || (strcmp(key, "height") == 0) || (strcmp(key, "radius") == 0) || (strcmp(key, "radial-a0") == 0) || (strcmp(key, "radial-a1") == 0) || (strcmp(key, "radial-a2") == 0)) {
 						double value = next_number(json);
 						// Width in the json means its the camera object
 						if (strcmp(key, "width")==0) {
@@ -280,16 +286,26 @@ void read_scene(char* filename, Object* object) {
 						} else if (strcmp(key, "radius") == 0) {
 							sphere.radius=value;
 						}
-					} else if ((strcmp(key, "color") == 0) || (strcmp(key, "position") == 0) || (strcmp(key, "normal") == 0)) {
+					} else if ((strcmp(key, "color") == 0) || (strcmp(key, "diffuse_color") == 0) || (strcmp(key, "specular_color") == 0) || (strcmp(key, "position") == 0) || (strcmp(key, "normal") == 0)) {
 						// Depending on the position in the object array, this is store the
 						// Color components in the given object data
 						double* value = next_vector(json);
-						if (strcmp(key, "color") == 0) {
+						if (strcmp(key, "diffuse_color") == 0) {
 							if (object[i].objType == 1) {
-								sphere.color[0] = value[0]; sphere.color[1] = value[1]; sphere.color[2] = value[2];
+								sphere.diffuse_color[0] = value[0]; sphere.diffuse_color[1] = value[1]; sphere.diffuse_color[2] = value[2];
 							}
 							if (object[i].objType == 2) {
-								plane.color[0] = value[0]; plane.color[1] = value[1]; plane.color[2] = value[2];
+								plane.diffuse_color[0] = value[0]; plane.diffuse_color[1] = value[1]; plane.diffuse_color[2] = value[2];
+							}
+						}
+						if (strcmp(key, "specular_color") == 0) {
+							if (object[i].objType == 1) {
+								sphere.specular_color[0] = value[0]; sphere.specular_color[1] = value[1]; sphere.specular_color[2] = value[2];
+							}
+						}
+						if (strcmp(key, "color") == 0) {
+							if (object[i].objType == 3) {
+								light.color[0] = value[0]; light.color[1] = value[1]; light.color[2] = value[2];
 							}
 						}
 						if (strcmp(key, "position") == 0) {
@@ -302,6 +318,9 @@ void read_scene(char* filename, Object* object) {
 							if (object[i].objType == 2) {
 								plane.position[0]  = value[0]; plane.position[1]  = value[1]; plane.position[2]  = value[2];
 							}
+							if (object[i].objType == 3) {
+								light.position[0]  = value[0]; light.position[1]  = value[1]; light.position[2]  = value[2];
+							}
 						}
 						// Normal is purely a 'plane' attribute so we only check for plane objType
 						if (strcmp(key, "normal") == 0) {
@@ -309,7 +328,7 @@ void read_scene(char* filename, Object* object) {
 								plane.normal[0]  = value[0]; plane.normal[1]  = value[1]; plane.normal[2]  = value[2];
 							}
 						}
-					// If the property is undefined for this project
+						// If the property is undefined for this project
 					} else {
 						fprintf(stderr, "Error: Unknown property, \"%s\", on line %d.\n", key, line);
 					}
@@ -323,6 +342,7 @@ void read_scene(char* filename, Object* object) {
 				object[i].cam=cam;
 				object[i].sphere=sphere;
 				object[i].plane=plane;
+				object[i].light=light;
 			}
 			
 			skip_ws(json);
@@ -462,6 +482,12 @@ void raycast(Object* objects,char* picture_height,char* picture_width,char* outp
 
 	// Basic loop varibles
     int j,y,index=0;
+	double color[3];
+	
+	// Change these colors later
+	color[0] = 0.1;
+	color[1] = 0.1;
+	color[2] = 0.1;
 	
 	// Initialization of the camera's center
     double centerX=0;
@@ -523,14 +549,14 @@ void raycast(Object* objects,char* picture_height,char* picture_width,char* outp
 			if(idealInsx > 0 && idealInsx != INFINITY){
 				
 				if(object.objType==1){
-					pixels[index].r = (int)(object.sphere.color[0]*255);
-					pixels[index].g = (int)(object.sphere.color[1]*255);
-					pixels[index].b = (int)(object.sphere.color[2]*255);
+					pixels[index].r = (color[0]*255);
+					pixels[index].g = (color[1]*255);
+					pixels[index].b = (color[2]*255);
 				}
 				if(object.objType==2){
-					pixels[index].r = (int)(object.plane.color[0]*255);
-					pixels[index].g = (int)(object.plane.color[1]*255);
-					pixels[index].b = (int)(object.plane.color[2]*255);
+					pixels[index].r = (color[0]*255);
+					pixels[index].g = (color[1]*255);
+					pixels[index].b = (color[2]*255);
 				}
 			} else{
 				// If no intersection, paint black area
