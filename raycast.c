@@ -276,7 +276,7 @@ void read_scene(char* filename, Object* object) {
 					expect_c(json, ':');
 					skip_ws(json);
 					
-		if ((strcmp(key, "width") == 0) || (strcmp(key, "height") == 0) || (strcmp(key, "radius") == 0) || (strcmp(key, "radial-a0") == 0) || (strcmp(key, "radial-a1") == 0) || (strcmp(key, "radial-a2") == 0)) {
+					if ((strcmp(key, "width") == 0) || (strcmp(key, "height") == 0) || (strcmp(key, "radius") == 0) || (strcmp(key, "radial-a0") == 0) || (strcmp(key, "radial-a1") == 0) || (strcmp(key, "radial-a2") == 0)) {
 						double value = next_number(json);
 						// Width in the json means its the camera object
 						if (strcmp(key, "width")==0) {
@@ -499,11 +499,13 @@ double spec_reflect(double sFactor, double lColor, double sColor){
 	return (lColor * sColor * pow(sFactor, spec_power));
 }
 
-void illuminate(double* Ro, double* Rd, double idealT, Object idealObject, int index, Object* objects){
+void illumination(double* Ro, double* Rd, double idealT, int index, Object* objects){
+	double origin[3];
 	double color[3];
+	double* vecCamObj = malloc(3 * sizeof(double));
+	double* tempNormal = malloc(3 * sizeof(double));
 	color[0] = 0.1; color[1] = 0.1; color[2] = 0.1;
 	
-	double origin[3];
 	origin[0] = idealT * Rd[0];
 	origin[1] = idealT * Rd[1];
 	origin[2] = idealT * Rd[2];
@@ -512,13 +514,15 @@ void illuminate(double* Ro, double* Rd, double idealT, Object idealObject, int i
 	origin[1] += Ro[1];
 	origin[2] += Ro[2];
 	
-	double* vecCamObj = malloc(3 * sizeof(double));
 	vecCamObj[0] = 0 - origin[0];
 	vecCamObj[1] = 0 - origin[1];
 	vecCamObj[2] = 0 - origin[2];
 	normalize(vecCamObj);
 	
-	
+	/* 	Rest of vector checking and light crossing
+		and color editing would go here, then 
+		the illuminate method would go before 
+		the writeP3ppm of raycast method */
 	
 }
 
