@@ -474,17 +474,30 @@ double clamp(double color){
 	return clamped;
 }
 
-
+// DONE
 double frad(double lDist, double ra0, double ra1, double ra2){
 		return (  (1/(ra2*sqr(lDist)) + (ra1*lDist) + ra0)  );
 }
-// TODO
 double fang(double* lDir, double anga0, double* rayVect){
 	// Check if the light is a spotlight
 	if((lDir[0] == 0) && (lDir[1] == 0) && (lDir[2] == 0)){
 		return 1.0;
 	}
 	return (pow(((rayVect[0]*lDir[0]) + (rayVect[1]*lDir[1]) + (rayVect[2]*lDir[2])),anga0));
+	
+}
+
+double diff_reflect(double dFactor, double lColor, double dColor){
+	return (dFactor * lColor * dcolor);
+}
+
+double spec_reflect(double sFactor, double lColor, double sColor){
+	// Hardcoded in from lecture instructions
+	int spec_power = 20;
+	return (lColor * dcolor * pow(sFactor, spec_power));
+}
+
+void illuminate(double* Ro, double* Rd, double idealT, Object idealObject, int index){
 	
 }
 
