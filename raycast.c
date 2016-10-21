@@ -42,8 +42,6 @@
 	
 */
 
-double line=1;
-
 // Struct Definitions
 typedef struct{
     double r, g, b;
@@ -86,6 +84,9 @@ typedef struct{
 	Light light;	// 3
 	
 }	Object;
+
+double line=1;
+Camera camera;
 
 // Iterate through a file, a json in this case
 int next_c(FILE* json) {
@@ -341,6 +342,7 @@ void read_scene(char* filename, Object* object) {
 				}
 				// Store the final objects in the loop iteration
 				object[i].cam=cam;
+				camera = cam;
 				object[i].sphere=sphere;
 				object[i].plane=plane;
 				object[i].light=light;
@@ -488,16 +490,35 @@ double fang(double* lDir, double anga0, double* rayVect){
 }
 
 double diff_reflect(double dFactor, double lColor, double dColor){
-	return (dFactor * lColor * dcolor);
+	return (dFactor * lColor * dColor);
 }
 
 double spec_reflect(double sFactor, double lColor, double sColor){
 	// Hardcoded in from lecture instructions
 	int spec_power = 20;
-	return (lColor * dcolor * pow(sFactor, spec_power));
+	return (lColor * sColor * pow(sFactor, spec_power));
 }
 
-void illuminate(double* Ro, double* Rd, double idealT, Object idealObject, int index){
+void illuminate(double* Ro, double* Rd, double idealT, Object idealObject, int index, Object* objects){
+	double color[3];
+	color[0] = 0.1; color[1] = 0.1; color[2] = 0.1;
+	
+	double origin[3];
+	origin[0] = idealT * Rd[0];
+	origin[1] = idealT * Rd[1];
+	origin[2] = idealT * Rd[2];
+	
+	origin[0] += Ro[0];
+	origin[1] += Ro[1];
+	origin[2] += Ro[2];
+	
+	double* vecCamObj = malloc(3 * sizeof(double));
+	vecCamObj[0] = 0 - origin[0];
+	vecCamObj[1] = 0 - origin[1];
+	vecCamObj[2] = 0 - origin[2];
+	normalize(vecCamObj);
+	
+	
 	
 }
 
@@ -571,7 +592,7 @@ void raycast(Object* objects,char* picture_height,char* picture_width,char* outp
             }
 
 			if(idealInsx > 0 && idealInsx != INFINITY){
-				
+				// Replace this with the illuminate method
 				if(object.objType==1){
 					pixels[index].r = (clamp(color[0]));
 					pixels[index].g = (clamp(color[1]));
