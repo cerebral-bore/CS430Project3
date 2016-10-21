@@ -75,6 +75,7 @@ typedef struct{
 	double radiala2;
 	double position[3];
 	double angulara0;
+	double theta;
 
 }	Light;
 typedef struct{
@@ -473,9 +474,19 @@ double clamp(double color){
 	return clamped;
 }
 
+
+double frad(double lDist, double ra0, double ra1, double ra2){
+		return (  (1/(ra2*sqr(lDist)) + (ra1*lDist) + ra0)  );
+}
 // TODO
-double frad(double lDist, double ra0, double ra1, double ra2){ return 1.0; }
-double fang(double lDir, double anga0, double* rayArray){ return 1.0; }
+double fang(double* lDir, double anga0, double* rayVect){
+	// Check if the light is a spotlight
+	if((lDir[0] == 0) && (lDir[1] == 0) && (lDir[2] == 0)){
+		return 1.0;
+	}
+	return (pow(((rayVect[0]*lDir[0]) + (rayVect[1]*lDir[1]) + (rayVect[2]*lDir[2])),anga0));
+	
+}
 
 // Creation function for the image
 void raycast(Object* objects,char* picture_height,char* picture_width,char* output_file){
@@ -549,14 +560,14 @@ void raycast(Object* objects,char* picture_height,char* picture_width,char* outp
 			if(idealInsx > 0 && idealInsx != INFINITY){
 				
 				if(object.objType==1){
-					pixels[index].r = (color[0]*255);
-					pixels[index].g = (color[1]*255);
-					pixels[index].b = (color[2]*255);
+					pixels[index].r = (clamp(color[0]));
+					pixels[index].g = (clamp(color[1]));
+					pixels[index].b = (clamp(color[2]));
 				}
 				if(object.objType==2){
-					pixels[index].r = (color[0]*255);
-					pixels[index].g = (color[1]*255);
-					pixels[index].b = (color[2]*255);
+					pixels[index].r = (clamp(color[0]));
+					pixels[index].g = (clamp(color[1]));
+					pixels[index].b = (clamp(color[2]));
 				}
 			} else{
 				// If no intersection, paint black area
