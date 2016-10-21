@@ -276,7 +276,7 @@ void read_scene(char* filename, Object* object) {
 					expect_c(json, ':');
 					skip_ws(json);
 					
-					if ((strcmp(key, "width") == 0) || (strcmp(key, "height") == 0) || (strcmp(key, "radius") == 0) || (strcmp(key, "radial-a0") == 0) || (strcmp(key, "radial-a1") == 0) || (strcmp(key, "radial-a2") == 0)) {
+					if ((strcmp(key, "width") == 0) || (strcmp(key, "height") == 0) || (strcmp(key, "radius") == 0) || (strcmp(key, "radial-a0") == 0) || (strcmp(key, "radial-a1") == 0) || (strcmp(key, "radial-a2") == 0) || (strcmp(key, "theta") == 0)) {
 						double value = next_number(json);
 						// Width in the json means its the camera object
 						if (strcmp(key, "width")==0) {
@@ -287,6 +287,8 @@ void read_scene(char* filename, Object* object) {
 						// Once again, radius is exclusive to circle objects
 						} else if (strcmp(key, "radius") == 0) {
 							sphere.radius=value;
+						} else if (strcmp(key, "theta") == 0) {
+							light.theta=value;
 						}
 					} else if ((strcmp(key, "color") == 0) || (strcmp(key, "diffuse_color") == 0) || (strcmp(key, "specular_color") == 0) || (strcmp(key, "position") == 0) || (strcmp(key, "normal") == 0)) {
 						// Depending on the position in the object array, this is store the
@@ -476,10 +478,11 @@ double clamp(double color){
 	return clamped;
 }
 
-// DONE
+// Radial Attentuation from the summation formula
 double frad(double lDist, double ra0, double ra1, double ra2){
 		return (  (1/(ra2*sqr(lDist)) + (ra1*lDist) + ra0)  );
 }
+// Angular attentuation from the summation formula
 double fang(double* lDir, double anga0, double* rayVect){
 	// Check if the light is a spotlight
 	if((lDir[0] == 0) && (lDir[1] == 0) && (lDir[2] == 0)){
@@ -489,16 +492,21 @@ double fang(double* lDir, double anga0, double* rayVect){
 	
 }
 
+// The incident light from inclass lecture on the 18th
 double diff_reflect(double dFactor, double lColor, double dColor){
 	return (dFactor * lColor * dColor);
 }
 
+// The specular highlight from inclass lecture on the 18th
 double spec_reflect(double sFactor, double lColor, double sColor){
 	// Hardcoded in from lecture instructions
 	int spec_power = 20;
 	return (lColor * sColor * pow(sFactor, spec_power));
 }
 
+/*	The 'meat and potatoes' of project 3
+	This will apply most of the additional functions and modify color 
+	values to include increased whiteness as a response to light intensity */
 void illumination(double* Ro, double* Rd, double idealT, int index, Object* objects){
 	double origin[3];
 	double color[3];
@@ -596,7 +604,9 @@ void raycast(Object* objects,char* picture_height,char* picture_width,char* outp
             }
 
 			if(idealInsx > 0 && idealInsx != INFINITY){
+				
 				// Replace this with the illuminate method
+				// -------------------------------------------
 				if(object.objType==1){
 					pixels[index].r = (clamp(color[0]));
 					pixels[index].g = (clamp(color[1]));
@@ -607,6 +617,7 @@ void raycast(Object* objects,char* picture_height,char* picture_width,char* outp
 					pixels[index].g = (clamp(color[1]));
 					pixels[index].b = (clamp(color[2]));
 				}
+				// -------------------------------------------
 			} else{
 				// If no intersection, paint black area
 				pixels[index].r = 0;
